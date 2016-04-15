@@ -1,0 +1,10 @@
+language: python
+python:
+  - "2.7"
+  - "3.2"
+  - "3.4"
+  - "3.5"
+
+install: "pip install pyusb==1.0.0rc1 pylint"
+script:
+  - "pylint --rcfile=pylint.conf temperusb/*.py"
