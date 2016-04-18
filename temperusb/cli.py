@@ -29,7 +29,7 @@ def parse_args():
     args = parser.parse_args()
 
     if args.sensor_ids == 'all':
-        args.sensor_ids = range(args.sensor_count)
+        args.sensor_ids = list(range(args.sensor_count))
     else:
         args.sensor_ids = [int(args.sensor_ids)]
 
