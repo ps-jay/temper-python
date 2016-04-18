@@ -1,17 +1,15 @@
 # encoding: utf-8
-#
-# Handles devices reporting themselves as USB VID/PID 0C45:7401 (mine also says
-# RDing TEMPerV1.2).
-#
-# Copyright 2012-2014 Philipp Adelt <info@philipp.adelt.net>
-#
-# This code is licensed under the GNU public license (GPL). See LICENSE.md for
-# details.
+"""Handles devices reporting themselves as USB VID/PID 0C45:7401 (mine also says RDing TEMPerV1.2).
 
-import usb
+Copyright 2012-2014 Philipp Adelt <info@philipp.adelt.net>
+
+This code is licensed under the GNU public license (GPL). See LICENSE.md for details.
+"""
+
+import logging
 import os
 import re
-import logging
+import usb
 
 VIDPIDS = [
     (0x0c45, 0x7401),
@@ -21,9 +19,9 @@ ENDPOINT = 0x82
 INTERFACE = 1
 CONFIG_NO = 1
 TIMEOUT = 5000
-USB_PORTS_STR = '^\s*(\d+)-(\d+(?:\.\d+)*)'
+USB_PORTS_STR = r'^\s*(\d+)-(\d+(?:\.\d+)*)'
 CALIB_LINE_STR = USB_PORTS_STR +\
-    '\s*:\s*scale\s*=\s*([+|-]?\d*\.\d+)\s*,\s*offset\s*=\s*([+|-]?\d*\.\d+)'
+    r'\s*:\s*scale\s*=\s*([+|-]?\d*\.\d+)\s*,\s*offset\s*=\s*([+|-]?\d*\.\d+)'
 USB_SYS_PREFIX = '/sys/bus/usb/devices/'
 COMMANDS = {
     'temp': b'\x01\x80\x33\x01\x00\x00\x00\x00',
@@ -83,11 +81,10 @@ class TemperDevice(object):
         self._device = device
         self._bus = device.bus
         self._ports = getattr(device, 'port_number', None)
-        if self._ports == None:
+        if self._ports is None:
             self._ports = find_ports(device)
         self.set_calibration_data()
-        LOGGER.debug('Found device | Bus:{0} Ports:{1}'.format(
-            self._bus, self._ports))
+        LOGGER.debug('Found device | Bus:%s Ports:%s', self._bus, self._ports)
 
     def set_calibration_data(self, scale=None, offset=None):
         """
@@ -158,10 +155,13 @@ class TemperDevice(object):
                 self._device.reset()
 
             # detach kernel driver from both interfaces if attached, so we can set_configuration()
-            for interface in [0,1]:
+            for interface in [0, 1]:
                 if self._device.is_kernel_driver_active(interface):
-                    LOGGER.debug('Detaching kernel driver for interface %d '
-                        'of %r on ports %r', interface, self._device, self._ports)
+                    LOGGER.debug('Detaching kernel driver for interface %d of %r on ports %r',
+                                 interface,
+                                 self._device,
+                                 self._ports,
+                                )
                     self._device.detach_kernel_driver(interface)
 
             self._device.set_configuration()
@@ -216,7 +216,7 @@ class TemperDevice(object):
                 LOGGER.error(err)
                 raise
 
-    def get_temperature(self, format='celsius', sensor=0):
+    def get_temperature(self, format='celsius', sensor=0):  # pylint: disable=redefined-builtin
         """
         Get device temperature reading.
         """
@@ -282,8 +282,13 @@ class TemperDevice(object):
         payload.
         """
         LOGGER.debug('Ctrl transfer: %r', data)
-        self._device.ctrl_transfer(bmRequestType=0x21, bRequest=0x09,
-            wValue=0x0200, wIndex=0x01, data_or_wLength=data, timeout=TIMEOUT)
+        self._device.ctrl_transfer(bmRequestType=0x21,
+                                   bRequest=0x09,
+                                   wValue=0x0200,
+                                   wIndex=0x01,
+                                   data_or_wLength=data,
+                                   timeout=TIMEOUT,
+                                  )
 
     def _interrupt_read(self):
         """
@@ -298,7 +303,7 @@ class TemperDevice(object):
         pass
 
 
-class TemperHandler(object):
+class TemperHandler(object):  # pylint: disable=too-few-public-methods
     """
     Handler for TEMPer USB thermometers.
     """
@@ -308,7 +313,7 @@ class TemperHandler(object):
         for vid, pid in VIDPIDS:
             self._devices += [TemperDevice(device) for device in \
                 usb.core.find(find_all=True, idVendor=vid, idProduct=pid)]
-        LOGGER.info('Found {0} TEMPer devices'.format(len(self._devices)))
+        LOGGER.info('Found %d TEMPer devices', len(self._devices))
 
     def get_devices(self):
         """
