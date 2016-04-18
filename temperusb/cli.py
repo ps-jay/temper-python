@@ -1,4 +1,6 @@
 # encoding: utf-8
+"""Command-line interface wrapper for temperusb"""
+
 from __future__ import print_function, absolute_import
 import argparse
 import logging
@@ -7,6 +9,7 @@ from .temper import TemperHandler
 
 
 def parse_args():
+    """Parse the command-line arguments"""
     descr = "Temperature data from a TEMPer v1.2 sensor."
 
     parser = argparse.ArgumentParser(description=descr)
@@ -34,10 +37,11 @@ def parse_args():
 
 
 def main():
+    """Reads from TEMPer USB devices"""
     args = parse_args()
     quiet = args.celsius or args.fahrenheit
 
-    logging.basicConfig(level = logging.ERROR if quiet else logging.WARNING)
+    logging.basicConfig(level=logging.ERROR if quiet else logging.WARNING)
 
     th = TemperHandler()
     devs = th.get_devices()
